@@ -1,6 +1,5 @@
-def main():
-    print("Hello from 42-flyin!")
+import FlyIn
 
 
 if __name__ == "__main__":
-    main()
+    print("Hello from 42-flyin!")
