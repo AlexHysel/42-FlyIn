@@ -9,16 +9,16 @@ class Map(BaseModel):
     start: Zone
     end: Zone
     zone_colors: dict[str, str] = Field(default_factory=dict)
- 
+
     def get_zone(self, name: str) -> Zone | None:
         return self.zones.get(name)
- 
+
     def get_connection(self, zone_a: Zone, zone_b: Zone) -> Connection | None:
         for conn in zone_a.neighbors:
             if conn.connects(zone_b):
                 return conn
         return None
- 
+
     def __repr__(self) -> str:
         return (
             f"Map(drones={self.nb_drones}, "
