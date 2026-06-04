@@ -50,7 +50,7 @@ class Graph(BaseModel):
         hubB.connections[hubA.name] = (hubA, cap)
 
 
-def dijkstra(graph: Graph) -> list[tuple[int, Hub]] | None:
+def dijkstra(graph: Graph) -> list[tuple[float, Hub]] | None:
     distances = {name: float("inf") for name in graph.hubs}
     distances[graph.start.name] = 0.0
     pq = [(0.0, 0, graph.start, 999)]
@@ -79,17 +79,31 @@ def dijkstra(graph: Graph) -> list[tuple[int, Hub]] | None:
     return None
 
 
-class Simulation:
-    def __init__(self, graph: Graph, path_data: list[tuple[int, Hub]]):
-        self.graph = graph
-        self.path = [p[1] for p in path_data]
-        self.nb_drones = graph.nb_drones
-        self.d_at_hubs = {name: 0 for name in graph.hubs}
-        self.d_at_hubs[graph.start.name] = self.nb_drones
+class Simulation(BaseModel):
+    graph: Graph
+    path: list[Hub]
+    nb_drones: int
+    d_at_hubs: dict[str, int] = Field(default_factory=dict)
+    drone_states: list[list[int]] = Field(default_factory=list)
+    finished_count: int = 0
+    ticks: int = 0
 
-        self.drone_states = [[-1, 0] for _ in range(self.nb_drones)]
-        self.finished_count = 0
-        self.ticks = 0
+    @classmethod
+    def create(cls,
+               graph: Graph,
+               path_data: list[tuple[float, Hub]]
+               ) -> "Simulation":
+        path = [p[1] for p in path_data]
+        d_at_hubs = {name: 0 for name in graph.hubs}
+        d_at_hubs[graph.start.name] = graph.nb_drones
+        drone_states = [[-1, 0] for _ in range(graph.nb_drones)]
+        return cls(
+            graph=graph,
+            path=path,
+            nb_drones=graph.nb_drones,
+            d_at_hubs=d_at_hubs,
+            drone_states=drone_states,
+        )
 
     def run(self) -> int:
         while self.finished_count < self.nb_drones:
@@ -263,7 +277,7 @@ if __name__ == "__main__":
 
     if path:
         print(f"Path found: {' -> '.join([h.name for _, h in path])}")
-        sim = Simulation(graph, path)
+        sim = Simulation.create(graph, path)
         total_ticks = sim.run()
         print("\n--- Simulation Result ---")
         print(f"Total drones: {graph.nb_drones}")
