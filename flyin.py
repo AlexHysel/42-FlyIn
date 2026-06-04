@@ -124,7 +124,6 @@ class Simulation(BaseModel):
                         new_idx = idx + 1
                         v = self.path[new_idx]
                         self.drone_states[i][0] = new_idx
-                        self.d_at_hubs[v.name] += 1
                         turn_output.append(f"D{i+1}-{v.name}")
                         if v == self.graph.end:
                             self.finished_count += 1
