@@ -113,9 +113,11 @@ class Simulation(BaseModel):
             for i in range(self.nb_drones):
                 idx, transit_left = self.drone_states[i]
 
+                # If the drone is already at the end hub, skip it
                 if idx == len(self.path) - 1:
                     continue
 
+                # If the drone is in transit, decrease the transit time and check if it arrives at the next hub
                 if transit_left > 0:
                     self.drone_states[i][1] -= 1
                     if self.drone_states[i][1] == 0:
@@ -127,11 +129,12 @@ class Simulation(BaseModel):
                         if v == self.graph.end:
                             self.finished_count += 1
                     continue
-
+                
                 next_idx = idx + 1
                 u = self.graph.start if idx == -1 else self.path[idx]
                 v = self.path[next_idx]
 
+                # Check if the drone can move from the transit to the next hub
                 if self.d_at_hubs[v.name] < v.capacity or v == self.graph.end:
                     self.d_at_hubs[u.name] -= 1
 
@@ -149,7 +152,7 @@ class Simulation(BaseModel):
 
             if turn_output:
                 turn_output.sort(key=lambda x: int(x.split("-")[0][1:]))
-                print(f"T{self.ticks}: {' '.join(turn_output)}")
+                print(f"{' '.join(turn_output)}")
         return self.ticks
 
 
@@ -276,11 +279,7 @@ if __name__ == "__main__":
     path = dijkstra(graph)
 
     if path:
-        print(f"Path found: {' -> '.join([h.name for _, h in path])}")
         sim = Simulation.create(graph, path)
         total_ticks = sim.run()
-        print("\n--- Simulation Result ---")
-        print(f"Total drones: {graph.nb_drones}")
-        print(f"Total ticks required: {total_ticks}")
     else:
         print("No path found!")
