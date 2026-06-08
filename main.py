@@ -4,10 +4,9 @@ from parser import Parser
 from models import Graph, Hub
 from simulation import Simulation
 
+
 COLORS = {
-    "yellow": "\033[34m",
     "red": "\033[31m",
-    "green": "\033[32m",
     "white": "\033[0m",
 }
 
@@ -56,4 +55,4 @@ if __name__ == "__main__":
         else:
             print("No path found!")
     except Exception as e:
-        print(f"{COLORS['red']}Error: {e}{COLORS['white']}")
+        print(f"{COLORS['red']}{e}{COLORS['white']}")

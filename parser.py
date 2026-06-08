@@ -7,94 +7,101 @@ class Parser:
         with open(path, "r") as file:
             lines = file.readlines()
 
-        hubs_registry: dict[str, Hub] = {}
+        hubs: dict[str, Hub] = {}
         connections_raw: list[str] = []
         start_hub: Hub | None = None
         end_hub: Hub | None = None
+        nb_drones: int | None = None
 
         lines = [
             line.strip()
             for line in lines
-            if line.strip() and not line.strip().startswith("#")
         ]
         if not lines:
-            raise Exception("Input file is empty or contains only comments.")
-        if not lines[0].startswith("nb_drones"):
-            raise Exception(
-                "The first line of the file should specify "
-                "the number of drones (e.g., 'nb_drones: 5')."
-            )
-        nb_drones = int(lines[0].split(":")[1].strip())
-        if nb_drones < 1:
-            raise Exception("The number of drones must be at least 1.")
+            raise Exception("Input file is empty")
 
-        for line in lines[1:]:
+        for i, line in enumerate(lines):
 
             obj_type, _, data = line.partition(":")
             data = data.strip()
 
             match obj_type:
 
+                case "nb_drones":
+                    if nb_drones is not None:
+                        raise Exception(f'line {i}: more than '
+                                        'one nb_drones provided.')
+                    nb_drones = int(line.split(":")[1].strip())
+
                 case "hub":
                     hub = Parser.parse_hub(data)
-                    if hub.name in hubs_registry:
+                    if hub.name in hubs:
                         raise Exception(
-                            f"Duplicate hub name '{hub.name}'"
+                            f"{i}: Duplicate hub name '{hub.name}'"
                             "found in the file."
                         )
-                    hubs_registry[hub.name] = hub
+                    hubs[hub.name] = hub
 
                 case "start_hub":
                     if start_hub is not None:
-                        raise Exception("More than one start hub provided.")
+                        raise Exception(f"{i}: More than one start "
+                                        "hub provided.")
                     start_hub = Parser.parse_hub(data)
-                    hubs_registry[start_hub.name] = start_hub
+                    hubs[start_hub.name] = start_hub
 
                 case "end_hub":
                     if end_hub is not None:
-                        raise Exception("More than one end hub provided.")
+                        raise Exception(f"{i}: More than one end "
+                                        "hub provided.")
                     end_hub = Parser.parse_hub(data)
-                    hubs_registry[end_hub.name] = end_hub
+                    hubs[end_hub.name] = end_hub
 
                 case "connection":
                     if data in connections_raw:
-                        raise Exception(f"Connection duplicate found: {data}")
-                    connections_raw.append(data)
+                        raise Exception(f"{i}: Connection "
+                                        f"duplicate found: {data}")
+                    basic, _, meta = data.partition("[")
+                    hub_names = basic.strip().split("-")
+                    if len(hub_names) != 2:
+                        continue
+                    connections_raw.append(basic)
+
+                    nameA, nameB = hub_names[0].strip(), hub_names[1].strip()
+                    if nameA not in hubs.keys():
+                        raise Exception(f"{i}: Connecting: Hub "
+                                        f"{nameA} deosnt exist.")
+                    if nameB not in hubs.keys():
+                        raise Exception(f"{i}: Connection: Hub "
+                                        f"{nameB} doesnt exist.")
+                    l_capacity = 1
+
+                    if "[" in data:
+                        metas = meta.rstrip("]").strip().split(" ")
+                        for m in metas:
+                            if "=" in m:
+                                key, val = m.split("=")
+                                if key == "max_link_capacity":
+                                    l_capacity = int(val)
+
+                    if nameA in hubs and nameB in hubs:
+                        Graph.connect(hubs[nameA], hubs[nameB], l_capacity)
 
                 case _:
-                    raise Exception(f"Unknown object '{obj_type}' found.")
+                    if not obj_type.startswith('#') and obj_type != '':
+                        raise Exception(f"{i}: Unknown object "
+                                        f"'{obj_type}' found.")
 
-        if start_hub is None or end_hub is None:
-            raise Exception("Start or End hub is missing in the file.")
+        if start_hub is None:
+            raise Exception("start_hub is missing in the file.")
+        if end_hub is None:
+            raise Exception("end_hub is missing in the file.")
+        if nb_drones is None:
+            raise Exception("nb_drones is missing in the file.")
 
         graph = Graph(
-            nb_drones=nb_drones, hubs=hubs_registry,
+            nb_drones=nb_drones, hubs=hubs,
             start=start_hub, end=end_hub
         )
-
-        for conn_data in connections_raw:
-            basic, _, meta = conn_data.partition("[")
-            names = basic.strip().split("-")
-            if len(names) != 2:
-                continue
-
-            nameA, nameB = names[0].strip(), names[1].strip()
-            if nameA not in hubs_registry.keys():
-                raise Exception(f"Connecting: Hub {nameA} deosnt exist.")
-            if nameB not in hubs_registry.keys():
-                raise Exception(f"Connection: Hub {nameB} doesnt exist.")
-            l_capacity = 1
-
-            if "[" in conn_data:
-                metas = meta.rstrip("]").strip().split(" ")
-                for m in metas:
-                    if "=" in m:
-                        key, val = m.split("=")
-                        if key == "max_link_capacity":
-                            l_capacity = int(val)
-
-            if nameA in graph.hubs and nameB in graph.hubs:
-                graph.connect(graph.hubs[nameA], graph.hubs[nameB], l_capacity)
 
         return graph
 

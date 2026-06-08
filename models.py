@@ -43,6 +43,7 @@ class Graph(BaseModel):
     def add_hub(self, hub: Hub) -> None:
         self.hubs[hub.name] = hub
 
-    def connect(self, hubA: Hub, hubB: Hub, cap: int) -> None:
+    @staticmethod
+    def connect(hubA: Hub, hubB: Hub, cap: int) -> None:
         hubA.connections[hubB.name] = (hubB, cap)
         hubB.connections[hubA.name] = (hubA, cap)
