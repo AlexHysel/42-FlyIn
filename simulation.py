@@ -1,5 +1,21 @@
 from pydantic import BaseModel, Field
-from main import Graph, Hub, HubType
+from models import Graph, Hub, HubType
+
+COLORS = {
+    "yellow": "\033[33m",
+    "red": "\033[31m",
+    "green": "\033[32m",
+    "white": "\033[0m",
+    "blue": "\033[34m",
+    "orange": "\033[38;5;208m",
+    "cyan": "\x1b[36m",
+    "lime": "\033[92m",
+    "magenta": "\x1b[35m",
+    "gold": "\x1b[38;5;220m",
+    "purple": "\x1b[35m",
+    "violet": "\033[0;35m",
+    "crimson": "\033[38;2;220;20;60m",
+}
 
 
 class Simulation(BaseModel):
@@ -40,7 +56,8 @@ class Simulation(BaseModel):
                 if idx == len(self.path) - 1:
                     continue
 
-                # If the drone is in transit, decrease the transit time and check if it arrives at the next hub
+                # If the drone is in transit, decrease the transit
+                # time and check if it arrives at the next hub
                 if transit_left > 0:
                     self.drone_states[i][1] -= 1
                     if self.drone_states[i][1] == 0:
@@ -51,7 +68,7 @@ class Simulation(BaseModel):
                         if v == self.graph.end:
                             self.finished_count += 1
                     continue
-                
+
                 next_idx = idx + 1
                 u = self.graph.start if idx == -1 else self.path[idx]
                 v = self.path[next_idx]
@@ -65,7 +82,24 @@ class Simulation(BaseModel):
                     if travel_time == 1:
                         self.d_at_hubs[v.name] += 1
                         self.drone_states[i] = [next_idx, 0]
-                        turn_output.append(f"D{i+1}-{v.name}")
+                        if v.color == "rainbow":
+                            rainbow = [
+                                "red",
+                                "orange",
+                                "yellow",
+                                "green",
+                                "blue",
+                                "violet",
+                            ]
+                            n = ""
+                            for f, ch in enumerate(v.name):
+                                n += COLORS[rainbow[f % len(rainbow)]] + ch
+                            turn_output.append(f"D{i+1}-{n}{COLORS['white']}")
+                        else:
+                            turn_output.append(
+                                f"D{i+1}-{COLORS[v.color]}"
+                                f"{v.name}{COLORS['white']}"
+                            )
                         if v == self.graph.end:
                             self.finished_count += 1
                     else:

@@ -1,15 +1,14 @@
 import heapq
 import argparse
-import heapq
 from parser import Parser
 from models import Graph, Hub
-
+from simulation import Simulation
 
 COLORS = {
-    'yellow': "\033[34m",
-    'red': "\033[31m",
-    'green': "\033[32m",
-    'white': "\033[37m"
+    "yellow": "\033[34m",
+    "red": "\033[31m",
+    "green": "\033[32m",
+    "white": "\033[0m",
 }
 
 

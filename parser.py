@@ -1,5 +1,4 @@
 from models import Graph, Hub, HubType
-from simulation import Simulation
 
 
 class Parser:
@@ -13,11 +12,18 @@ class Parser:
         start_hub: Hub | None = None
         end_hub: Hub | None = None
 
-        lines = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
+        lines = [
+            line.strip()
+            for line in lines
+            if line.strip() and not line.strip().startswith("#")
+        ]
         if not lines:
             raise Exception("Input file is empty or contains only comments.")
         if not lines[0].startswith("nb_drones"):
-            raise Exception("The first line of the file should specify the number of drones (e.g., 'nb_drones: 5').")
+            raise Exception(
+                "The first line of the file should specify "
+                "the number of drones (e.g., 'nb_drones: 5')."
+            )
         nb_drones = int(lines[0].split(":")[1].strip())
         if nb_drones < 1:
             raise Exception("The number of drones must be at least 1.")
@@ -32,7 +38,10 @@ class Parser:
                 case "hub":
                     hub = Parser.parse_hub(data)
                     if hub.name in hubs_registry:
-                        raise Exception(f"Duplicate hub name '{hub.name}' found in the file.")
+                        raise Exception(
+                            f"Duplicate hub name '{hub.name}'"
+                            "found in the file."
+                        )
                     hubs_registry[hub.name] = hub
 
                 case "start_hub":
@@ -48,10 +57,12 @@ class Parser:
                     hubs_registry[end_hub.name] = end_hub
 
                 case "connection":
+                    if data in connections_raw:
+                        raise Exception(f"Connection duplicate found: {data}")
                     connections_raw.append(data)
-                
+
                 case _:
-                    raise Exception(f"Unknown object type '{obj_type}' in the file.")
+                    raise Exception(f"Unknown object '{obj_type}' found.")
 
         if start_hub is None or end_hub is None:
             raise Exception("Start or End hub is missing in the file.")
@@ -68,6 +79,10 @@ class Parser:
                 continue
 
             nameA, nameB = names[0].strip(), names[1].strip()
+            if nameA not in hubs_registry.keys():
+                raise Exception(f"Connecting: Hub {nameA} deosnt exist.")
+            if nameB not in hubs_registry.keys():
+                raise Exception(f"Connection: Hub {nameB} doesnt exist.")
             l_capacity = 1
 
             if "[" in conn_data:
