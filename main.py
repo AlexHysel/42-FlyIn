@@ -13,8 +13,8 @@ COLORS = {
 
 def dijkstra(graph: Graph) -> list[tuple[float, Hub]] | None:
     """Pathfinding Algorithm"""
-    distances = {name: float("inf") for name in graph.hubs}
-    distances[graph.start.name] = 0.0
+    total_weight = {name: float("inf") for name in graph.hubs}
+    total_weight[graph.start.name] = 0.0
     # (weight, link_capacity, hub)
     pq = [(0.0, 0, graph.start)]
     came_from: dict[Hub, tuple[Hub, int]] = {}
@@ -29,13 +29,13 @@ def dijkstra(graph: Graph) -> list[tuple[float, Hub]] | None:
                 hub, link_capacity = came_from[hub]
             return list(reversed(path))
 
-        if weight > distances[hub.name]:
+        if weight > total_weight[hub.name]:
             continue
 
         for neighbour, capacity in hub.connections.values():
             new_w = weight + neighbour.get_weight()
-            if new_w < distances[neighbour.name]:
-                distances[neighbour.name] = new_w
+            if new_w < total_weight[neighbour.name]:
+                total_weight[neighbour.name] = new_w
                 came_from[neighbour] = (hub, capacity)
                 heapq.heappush(pq, (new_w, -capacity, neighbour))
     return None
