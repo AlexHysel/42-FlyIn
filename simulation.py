@@ -32,6 +32,7 @@ class Simulation(BaseModel):
                graph: Graph,
                path_data: list[tuple[float, Hub]]
                ) -> "Simulation":
+        """Constructor, returns Simulation object"""
         path = [p[1] for p in path_data]
         d_at_hubs = {name: 0 for name in graph.hubs}
         d_at_hubs[graph.start.name] = graph.nb_drones
@@ -45,6 +46,7 @@ class Simulation(BaseModel):
         )
 
     def run(self) -> int:
+        """Runs simulation"""
         while self.finished_count < self.nb_drones:
             self.ticks += 1
             turn_output = []
