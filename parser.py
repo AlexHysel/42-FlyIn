@@ -29,8 +29,8 @@ class Parser:
 
                 case "nb_drones":
                     if nb_drones is not None:
-                        raise Exception(f'line {i}: more than '
-                                        'one nb_drones provided.')
+                        raise Exception(f'{i}: more than '
+                                        'one \'nb_drones\' provided.')
                     nb_drones = int(line.split(":")[1].strip())
 
                 case "hub":
@@ -84,7 +84,7 @@ class Parser:
                                     l_capacity = int(val)
 
                     if nameA in hubs and nameB in hubs:
-                        Graph.connect(hubs[nameA], hubs[nameB], l_capacity)
+                        hubs[nameA].connect(hubs[nameB], l_capacity)
 
                 case _:
                     if not obj_type.startswith('#') and obj_type != '':
@@ -97,6 +97,8 @@ class Parser:
             raise Exception("end_hub is missing in the file.")
         if nb_drones is None:
             raise Exception("nb_drones is missing in the file.")
+        if nb_drones < 1:
+            raise Exception("nb_drones should be at least 1.")
 
         graph = Graph(
             nb_drones=nb_drones, hubs=hubs,

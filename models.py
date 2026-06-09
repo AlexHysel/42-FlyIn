@@ -24,6 +24,10 @@ class Hub(BaseModel):
             return 0.99
         return 1.0
 
+    def connect(self, hubB: Hub, cap: int) -> None:
+        self.connections[hubB.name] = (hubB, cap)
+        hubB.connections[self.name] = (self, cap)
+
     def __lt__(self, other: "Hub") -> bool:
         return self.name < other.name
 
@@ -42,8 +46,3 @@ class Graph(BaseModel):
 
     def add_hub(self, hub: Hub) -> None:
         self.hubs[hub.name] = hub
-
-    @staticmethod
-    def connect(hubA: Hub, hubB: Hub, cap: int) -> None:
-        hubA.connections[hubB.name] = (hubB, cap)
-        hubB.connections[hubA.name] = (hubA, cap)
