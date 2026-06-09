@@ -4,6 +4,7 @@ from models import Graph, Hub, HubType
 class Parser:
     @staticmethod
     def parse(path: str) -> Graph:
+        """Parses file to Graph object"""
         with open(path, "r") as file:
             lines = file.readlines()
 
@@ -109,6 +110,7 @@ class Parser:
 
     @staticmethod
     def parse_hub(data: str) -> Hub:
+        """Parses string to Hub object"""
         basic, _, meta = data.partition("[")
         values = basic.split(" ")
         meta_values = meta.rstrip("]").strip().split(" ")

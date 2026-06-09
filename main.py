@@ -12,31 +12,32 @@ COLORS = {
 
 
 def dijkstra(graph: Graph) -> list[tuple[float, Hub]] | None:
+    """Pathfinding Algorithm"""
     distances = {name: float("inf") for name in graph.hubs}
     distances[graph.start.name] = 0.0
-    pq = [(0.0, 0, graph.start, 999)]
+    # (weight, link_capacity, hub)
+    pq = [(0.0, 0, graph.start)]
     came_from: dict[Hub, tuple[Hub, int]] = {}
 
     while pq:
-        curr_w, _, u, curr_cap = heapq.heappop(pq)
-        if u == graph.end:
+        weight, _, hub = heapq.heappop(pq)
+        if hub == graph.end:
             path = []
-            curr = u
-            cap = curr_cap
-            while curr != graph.start:
-                path.append((cap, curr))
-                curr, cap = came_from[curr]
+            link_capacity = 0
+            while hub != graph.start:
+                path.append((link_capacity, hub))
+                hub, link_capacity = came_from[hub]
             return list(reversed(path))
 
-        if curr_w > distances[u.name]:
+        if weight > distances[hub.name]:
             continue
 
-        for neighbor, capacity in u.connections.values():
-            new_w = curr_w + neighbor.get_weight()
-            if new_w < distances[neighbor.name]:
-                distances[neighbor.name] = new_w
-                came_from[neighbor] = (u, capacity)
-                heapq.heappush(pq, (new_w, -capacity, neighbor, capacity))
+        for neighbour, capacity in hub.connections.values():
+            new_w = weight + neighbour.get_weight()
+            if new_w < distances[neighbour.name]:
+                distances[neighbour.name] = new_w
+                came_from[neighbour] = (hub, capacity)
+                heapq.heappush(pq, (new_w, -capacity, neighbour))
     return None
 
 

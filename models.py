@@ -18,6 +18,7 @@ class Hub(BaseModel):
     connections: dict[str, tuple["Hub", int]] = {}
 
     def get_weight(self) -> float:
+        """Returns weight depending on HubType"""
         if self.hub_type == HubType.RESTRICTED:
             return 2.0
         if self.hub_type == HubType.PRIORITY:
@@ -25,6 +26,8 @@ class Hub(BaseModel):
         return 1.0
 
     def connect(self, hubB: Hub, cap: int) -> None:
+        """Connects this hub to another one
+        Connection is a tuple (hub, link_capacity)"""
         self.connections[hubB.name] = (hubB, cap)
         hubB.connections[self.name] = (self, cap)
 
@@ -45,4 +48,5 @@ class Graph(BaseModel):
     end: Hub
 
     def add_hub(self, hub: Hub) -> None:
+        """Adds new hub to the dictionary"""
         self.hubs[hub.name] = hub
