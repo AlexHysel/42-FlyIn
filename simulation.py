@@ -23,7 +23,7 @@ class Simulation(BaseModel):
     path: list[Hub]
     nb_drones: int
     d_at_hubs: dict[str, int] = Field(default_factory=dict)
-    drone_states: list[list[int]] = Field(default_factory=list)
+    drone_states: list[list[int | bool]] = Field(default_factory=list)
     finished_count: int = 0
     ticks: int = 0
 
@@ -36,7 +36,7 @@ class Simulation(BaseModel):
         path = [p[1] for p in path_data]
         d_at_hubs = {name: 0 for name in graph.hubs}
         d_at_hubs[graph.start.name] = graph.nb_drones
-        drone_states = [[-1, 0] for _ in range(graph.nb_drones)]
+        drone_states = [[-1, False] for _ in range(graph.nb_drones)]
         return cls(
             graph=graph,
             path=path,
@@ -52,39 +52,29 @@ class Simulation(BaseModel):
             turn_output = []
 
             for i in range(self.nb_drones):
-                idx, transit_left = self.drone_states[i]
+                
+                idx, on_transit = self.drone_states[i]
 
                 # If the drone is already at the end hub, skip it
                 if idx == len(self.path) - 1:
                     continue
-
-                # If the drone is in transit, decrease the transit
-                # time and check if it arrives at the next hub
-                if transit_left > 0:
-                    self.drone_states[i][1] -= 1
-                    if self.drone_states[i][1] == 0:
-                        new_idx = idx + 1
-                        v = self.path[new_idx]
-                        self.drone_states[i][0] = new_idx
-                        turn_output.append(f"D{i+1}-{v.name}")
-                        if v == self.graph.end:
-                            self.finished_count += 1
-                    continue
-
+                
                 next_idx = idx + 1
-                u = self.graph.start if idx == -1 else self.path[idx]
-                v = self.path[next_idx]
+                curr = self.graph.start if idx == -1 else self.path[idx]
+                next_hub = self.path[next_idx]
+
+                if on_transit:
+                    if self.d_at_hubs[next_hub.name] < next_hub.capacity:
+                        self.drone_states[i][1] = False
+                        #raise RuntimeError(f"Deadlock: D{i+1} must arrive at {next_hub.name} but it's full")
 
                 # Check if the drone can move from the transit to the next hub
-                if self.d_at_hubs[v.name] < v.capacity or v == self.graph.end:
-                    self.d_at_hubs[u.name] -= 1
+                if self.d_at_hubs[next_hub.name] < next_hub.capacity or next_hub == self.graph.end:
+                    self.d_at_hubs[curr.name] -= 1
 
-                    travel_time = 2 if v.hub_type == HubType.RESTRICTED else 1
-
-                    if travel_time == 1:
-                        self.d_at_hubs[v.name] += 1
+                    if next_hub.hub_type != HubType.RESTRICTED:
                         self.drone_states[i] = [next_idx, 0]
-                        if v.color == "rainbow":
+                        if next_hub.color == "rainbow":
                             rainbow = [
                                 "red",
                                 "orange",
@@ -94,19 +84,21 @@ class Simulation(BaseModel):
                                 "violet",
                             ]
                             n = ""
-                            for f, ch in enumerate(v.name):
+                            for f, ch in enumerate(next_hub.name):
                                 n += COLORS[rainbow[f % len(rainbow)]] + ch
                             turn_output.append(f"D{i+1}-{n}{COLORS['white']}")
                         else:
                             turn_output.append(
-                                f"D{i+1}-{COLORS[v.color]}"
-                                f"{v.name}{COLORS['white']}"
+                                f"D{i+1}-{COLORS[next_hub.color]}"
+                                f"{next_hub.name}{COLORS['white']}"
                             )
-                        if v == self.graph.end:
+                        if next_hub == self.graph.end:
                             self.finished_count += 1
                     else:
-                        self.drone_states[i][1] = travel_time - 1
-                        self.d_at_hubs[v.name] += 1
+                        self.drone_states[i][1] = True
+                        self.d_at_hubs[curr.name] -= 1
+                        turn_output.append(f"D{i+1}-{curr.name}-{next_hub.name}")
+                    self.d_at_hubs[next_hub.name] += 1
 
             if turn_output:
                 turn_output.sort(key=lambda x: int(x.split("-")[0][1:]))
