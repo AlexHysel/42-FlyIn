@@ -64,16 +64,21 @@ class Simulation(BaseModel):
                 next_hub = self.path[next_idx]
 
                 if on_transit:
-                    if self.d_at_hubs[next_hub.name] < next_hub.capacity:
-                        self.drone_states[i][1] = False
-                        #raise RuntimeError(f"Deadlock: D{i+1} must arrive at {next_hub.name} but it's full")
+                    if self.d_at_hubs[next_hub.name] >= next_hub.capacity:
+                        raise RuntimeError(f"Deadlock: D{i+1} must arrive at {next_hub.name} but it's full")
+                    self.d_at_hubs[next_hub.name] += 1
+                    self.d_at_hubs[curr.name] -= 1
+                    self.drone_states[i] = [next_idx, False]
+                    if next_hub == self.graph.end:
+                        self.finished_count += 1
+                    continue
 
                 # Check if the drone can move from the transit to the next hub
                 if self.d_at_hubs[next_hub.name] < next_hub.capacity or next_hub == self.graph.end:
                     self.d_at_hubs[curr.name] -= 1
 
                     if next_hub.hub_type != HubType.RESTRICTED:
-                        self.drone_states[i] = [next_idx, 0]
+                        self.drone_states[i] = [next_idx, False]
                         if next_hub.color == "rainbow":
                             rainbow = [
                                 "red",
@@ -94,11 +99,12 @@ class Simulation(BaseModel):
                             )
                         if next_hub == self.graph.end:
                             self.finished_count += 1
+                        self.d_at_hubs[next_hub.name] += 1
                     else:
                         self.drone_states[i][1] = True
                         self.d_at_hubs[curr.name] -= 1
                         turn_output.append(f"D{i+1}-{curr.name}-{next_hub.name}")
-                    self.d_at_hubs[next_hub.name] += 1
+                    
 
             if turn_output:
                 turn_output.sort(key=lambda x: int(x.split("-")[0][1:]))
