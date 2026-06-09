@@ -52,29 +52,29 @@ class Simulation(BaseModel):
             turn_output = []
 
             for i in range(self.nb_drones):
-                
+
                 idx, on_transit = self.drone_states[i]
 
-                # If the drone is already at the end hub, skip it
                 if idx == len(self.path) - 1:
                     continue
-                
+
                 next_idx = idx + 1
                 curr = self.graph.start if idx == -1 else self.path[idx]
                 next_hub = self.path[next_idx]
+                next_name = next_hub.name
 
                 if on_transit:
-                    if self.d_at_hubs[next_hub.name] >= next_hub.capacity:
-                        raise RuntimeError(f"Deadlock: D{i+1} must arrive at {next_hub.name} but it's full")
-                    self.d_at_hubs[next_hub.name] += 1
+                    if self.d_at_hubs[next_name] >= next_hub.capacity:
+                        raise RuntimeError(f"Deadlock: D{i+1} must arrive "
+                                           "at {next_name} but it's full")
+                    self.d_at_hubs[next_name] += 1
                     self.d_at_hubs[curr.name] -= 1
                     self.drone_states[i] = [next_idx, False]
                     if next_hub == self.graph.end:
                         self.finished_count += 1
                     continue
 
-                # Check if the drone can move from the transit to the next hub
-                if self.d_at_hubs[next_hub.name] < next_hub.capacity or next_hub == self.graph.end:
+                if self.d_at_hubs[next_name] < next_hub.capacity:
                     self.d_at_hubs[curr.name] -= 1
 
                     if next_hub.hub_type != HubType.RESTRICTED:
@@ -89,22 +89,26 @@ class Simulation(BaseModel):
                                 "violet",
                             ]
                             n = ""
-                            for f, ch in enumerate(next_hub.name):
+                            for f, ch in enumerate(next_name):
                                 n += COLORS[rainbow[f % len(rainbow)]] + ch
                             turn_output.append(f"D{i+1}-{n}{COLORS['white']}")
                         else:
                             turn_output.append(
                                 f"D{i+1}-{COLORS[next_hub.color]}"
-                                f"{next_hub.name}{COLORS['white']}"
+                                f"{next_name}{COLORS['white']}"
                             )
                         if next_hub == self.graph.end:
                             self.finished_count += 1
-                        self.d_at_hubs[next_hub.name] += 1
+                        self.d_at_hubs[next_name] += 1
                     else:
+                        a = sum(
+                            1 for s in self.drone_states
+                            if s[1] and self.path[s[0] + 1] == next_hub
+                        )
+                        if self.d_at_hubs[next_name] + a >= next_hub.capacity:
+                            continue
                         self.drone_states[i][1] = True
-                        self.d_at_hubs[curr.name] -= 1
-                        turn_output.append(f"D{i+1}-{curr.name}-{next_hub.name}")
-                    
+                        turn_output.append(f"D{i+1}-{curr.name}-{next_name}")
 
             if turn_output:
                 turn_output.sort(key=lambda x: int(x.split("-")[0][1:]))

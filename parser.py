@@ -48,6 +48,7 @@ class Parser:
                         raise Exception(f"{i}: More than one start "
                                         "hub provided.")
                     start_hub = Parser.parse_hub(data)
+                    start_hub.capacity = 999999
                     hubs[start_hub.name] = start_hub
 
                 case "end_hub":
@@ -55,6 +56,7 @@ class Parser:
                         raise Exception(f"{i}: More than one end "
                                         "hub provided.")
                     end_hub = Parser.parse_hub(data)
+                    end_hub.capacity = 999999
                     hubs[end_hub.name] = end_hub
 
                 case "connection":
