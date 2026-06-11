@@ -3,9 +3,10 @@ from pydantic import BaseModel, Field
 
 
 class HubType(Enum):
-    RESTRICTED = "restricted"
-    NORMAL = "normal"
-    PRIORITY = "priority"
+    RESTRICTED = 'restricted'
+    NORMAL = 'normal'
+    PRIORITY = 'priority'
+    BLOCKED = 'blocked'
 
 
 class Hub(BaseModel):
@@ -28,8 +29,17 @@ class Hub(BaseModel):
     def connect(self, hubB: Hub, cap: int) -> None:
         """Connects this hub to another one
         Connection is a tuple (hub, link_capacity)"""
+
         self.connections[hubB.name] = (hubB, cap)
         hubB.connections[self.name] = (self, cap)
+
+    def has_connection(self, hubB: Hub | str) -> bool:
+        """Returns true if this Hub has connection with HubB"""
+
+        if isinstance(hubB, Hub):
+            return hubB.name in self.connections
+        if isinstance(hubB, str):
+            return hubB in self.connections
 
     def __lt__(self, other: "Hub") -> bool:
         return self.name < other.name

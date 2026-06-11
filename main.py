@@ -1,6 +1,6 @@
 import heapq
 import argparse
-from parser import Parser
+from parser import Parser, ParsingError
 from models import Graph, Hub
 from simulation import Simulation
 
@@ -42,12 +42,13 @@ def dijkstra(graph: Graph) -> list[tuple[float, Hub]] | None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("file", help="Input file with map")
-    args = parser.parse_args()
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument("file", help="Input file with map")
+    args = arg_parser.parse_args()
 
     try:
-        graph = Parser.parse(args.file)
+        parser = Parser()
+        graph = parser.parse(args.file)
         path = dijkstra(graph)
 
         if path:
@@ -55,5 +56,5 @@ if __name__ == "__main__":
             total_ticks = sim.run()
         else:
             print("No path found!")
-    except Exception as e:
-        print(f"{COLORS['red']}{e}{COLORS['white']}")
+    except ParsingError as e:
+        print(f"{COLORS['red']}ParserError: {e}{COLORS['white']}")
