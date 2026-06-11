@@ -1,0 +1,11 @@
+# Non-integer coordinate
+nb_drones: 2
+
+start_hub: start 0 0 [color=green]
+hub: waypoint1 -5 0 [color=blue]
+hub: waypoint2 0.25 0 [color=blue]
+end_hub: goal 3 0 [color=red]
+
+connection: start-waypoint1
+connection: waypoint1-waypoint2
+connection: waypoint2-goal
