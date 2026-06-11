@@ -148,10 +148,6 @@ class Parser(BaseModel):
                 "(should be <name> <x> <y> [metadate]).")
 
         # MAIN Parsing
-        if not values[1].isdigit():
-            self._error('x has to be an integer')
-        if not values[2].isdigit():
-            self._error('y has to be an integer')
         hub = Hub(name=values[0], x=int(values[1]), y=int(values[2]))
 
         # META Parsing
