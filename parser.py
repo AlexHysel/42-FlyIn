@@ -63,6 +63,8 @@ class Parser(BaseModel):
                     if start_hub is not None:
                         self._error('More than one start_hub provided')
                     start_hub = self._hub(data)
+                    if start_hub.hub_type == HubType.BLOCKED:
+                        self._error('start_hub is BLOCKED')
                     start_hub.capacity = 999999
                     hubs[start_hub.name] = start_hub
 
@@ -70,6 +72,8 @@ class Parser(BaseModel):
                     if end_hub is not None:
                         self._error('More than one end_hub provided')
                     end_hub = self._hub(data)
+                    if end_hub.hub_type == HubType.BLOCKED:
+                        self._error('end_hub is BLOCKED')
                     end_hub.capacity = 999999
                     hubs[end_hub.name] = end_hub
 
@@ -142,6 +146,8 @@ class Parser(BaseModel):
 
         values = re.findall(r'\[.*?\]|\S+', data)
         nb_values = len(values)
+        meta_dict = {}
+        
         if nb_values not in [3, 4]:
             self._error(
                 f"Wrong number of properties: {nb_values}. "
