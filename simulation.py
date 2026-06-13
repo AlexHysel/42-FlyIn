@@ -106,6 +106,7 @@ class Simulation(BaseModel):
                             if s[1] and self.path[s[0] + 1] == next_hub
                         )
                         if self.d_at_hubs[next_name] + a >= next_hub.capacity:
+                            self.d_at_hubs[curr.name] += 1
                             continue
                         self.drone_states[i][1] = True
                         turn_output.append(f"D{i+1}-{curr.name}-{next_name}")
