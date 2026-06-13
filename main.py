@@ -57,4 +57,10 @@ if __name__ == "__main__":
         else:
             print("No path found!")
     except ParsingError as e:
-        print(f"{COLORS['red']}ParserError: {e}{COLORS['white']}")
+        print(f"{COLORS['red']}ParsingError: {e}{COLORS['white']}")
+
+    except RuntimeError as e:
+        print(f"{COLORS['red']}RuntimeError: {e}{COLORS['white']}")
+
+    except Exception as e:
+        print(f"{COLORS['red']}Exception: {e}{COLORS['white']}")
