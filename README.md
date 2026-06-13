@@ -85,6 +85,5 @@ Terminal output lists all drone movements per turn in a compact, readable format
 - [Dijkstra's algorithm — Wikipedia](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)
 - [Python heapq documentation](https://docs.python.org/3/library/heapq.html)
 - [Pydantic documentation](https://docs.pydantic.dev)
-- [A* search algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm)
 
 **AI usage:** Claude (Anthropic) was used throughout the project for architectural discussions, understanding algorithm mechanics (Dijkstra, heaps, graph representation), debugging parser and simulation logic, and code review. All code was written manually — AI was used as a learning and discussion tool, not for code generation.
