@@ -78,7 +78,7 @@ Terminal output lists all drone movements per turn in a compact, readable format
 | Hard — Maze nightmare | 8 | ≤ 30 | ✓ |
 | Hard — Capacity hell | 12 | ≤ 35 | ✓ |
 | Hard — Ultimate challenge | 15 | ≤ 45 | ✓ |
-| Challenger — Impossible Dream | 25 | ≤ 45 | 43 ✓ |
+| Challenger — Impossible Dream | 25 | ≤ 45 | 67 |
 
 ## Resources
 

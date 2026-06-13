@@ -147,7 +147,7 @@ class Parser(BaseModel):
         values = re.findall(r'\[.*?\]|\S+', data)
         nb_values = len(values)
         meta_dict = {}
-        
+
         if nb_values not in [3, 4]:
             self._error(
                 f"Wrong number of properties: {nb_values}. "
